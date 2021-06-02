@@ -1,21 +1,25 @@
 import Layout from '@/components/Layout';
 import styles from '@/styles/Form.module.css';
 import {API_URL} from '@/config/index';
-import Link from 'next/link';
+import {format} from 'date-fns';
 import {useState} from 'react';
 import {useRouter} from 'next/router';
 import {toast} from 'react-toastify';
+import Image from 'next/image';
+import {FaImage} from 'react-icons/fa';
 
-const AddEvent = () => {
+const EditEvent = ({evt}) => {
     const [values, setValues] = useState({
-        name: '',
-        performers: '',
-        venue: '',
-        address: '',
-        date: '',
-        time: '',
-        description: '',
+        name: evt.name,
+        performers: evt.performers,
+        venue: evt.venue,
+        address: evt.address,
+        date: format(new Date(evt.date), 'yyyy-MM-dd'),
+        time: evt.time,
+        description: evt.description,
     });
+
+    const [preview, setPreview] = useState(evt.image ? evt.image.formats.large.url : null);
 
     const router = useRouter();
 
@@ -30,8 +34,8 @@ const AddEvent = () => {
             return;
         }
 
-        const res = await fetch(`${API_URL}/events`, {
-            method: 'POST',
+        const res = await fetch(`${API_URL}/events/${evt.id}`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
@@ -52,8 +56,8 @@ const AddEvent = () => {
     };
 
     return (
-        <Layout title="Add New Event">
-            <h1>Add Event</h1>
+        <Layout title="Update Event">
+            <h1>Edit Event</h1>
 
             <form onSubmit={handleSubmit} className={styles.form}>
                 <div className={styles.grid}>
@@ -128,10 +132,41 @@ const AddEvent = () => {
                         onChange={handleInputChange}
                     />
                 </div>
-                <input type='submit' className='btn' value='Add Event'/>
+
+                <input type='submit' className='btn' value='Update Event'/>
             </form>
+
+            {
+                preview ? (
+                    <Image
+                        src={preview}
+                        height={100}
+                        width={170}
+                    />
+                ) : (
+                    <div>
+                        <p>No image uploaded</p>
+                    </div>
+                )
+            }
+            <div>
+                <button className="btn-secondary">
+                    <FaImage /> Set Image
+                </button>
+            </div>
         </Layout>
     );
 };
 
-export default AddEvent;
+export default EditEvent;
+
+export async function getServerSideProps({params: {id}}) {
+    const res = await fetch(`${API_URL}/events/${id}`);
+    const evt = await res.json();
+
+    return {
+        props: {
+            evt
+        }
+    };
+}
