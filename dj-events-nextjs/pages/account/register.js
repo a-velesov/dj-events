@@ -1,6 +1,6 @@
 import Layout from '@/components/Layout';
 import styles from '@/styles/AuthForm.module.css';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import Link from 'next/link';
 import {FaUser} from 'react-icons/fa';
 import {toast} from 'react-toastify';
@@ -13,6 +13,8 @@ const Register = () => {
     const [passwordConfirm, setPasswordConfirm] = useState('');
 
     const {register, error} = useContext(AuthContext);
+
+    useEffect(() => error && toast.error(error));
 
     const handleSubmit = (e) => {
         e.preventDefault();
