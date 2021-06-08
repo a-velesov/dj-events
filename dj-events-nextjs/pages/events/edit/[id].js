@@ -76,8 +76,9 @@ const EditEvent = ({evt}) => {
                     preview ? (
                         <Image
                             src={preview}
-                            height={350}
-                            width="auto"
+                            width='600'
+                            height='400'
+                            layout="fixed"
                         />
                     ) : (
                         <div>
