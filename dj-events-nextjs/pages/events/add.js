@@ -1,12 +1,12 @@
 import Layout from '@/components/Layout';
 import styles from '@/styles/Form.module.css';
 import {API_URL} from '@/config/index';
-import Link from 'next/link';
 import {useState} from 'react';
 import {useRouter} from 'next/router';
 import {toast} from 'react-toastify';
+import {parseCookies} from '@/helpers/index';
 
-const AddEvent = () => {
+const AddEvent = ({token}) => {
     const [values, setValues] = useState({
         name: '',
         performers: '',
@@ -33,12 +33,18 @@ const AddEvent = () => {
         const res = await fetch(`${API_URL}/events`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
             },
             body: JSON.stringify(values)
         });
 
         if (!res.ok) {
+            if (res.status === 403 || res.status === 401) {
+                toast.error('No token include');
+                router.push('/account/login');
+                return;
+            }
             toast.error('Something Went Wrong');
         } else {
             const evt = await res.json();
@@ -135,3 +141,14 @@ const AddEvent = () => {
 };
 
 export default AddEvent;
+
+export function getServerSideProps({req}) {
+    let {token} = parseCookies(req);
+    if (!token) {
+        token = null;
+    }
+
+    return {
+        props: {token}
+    }
+}

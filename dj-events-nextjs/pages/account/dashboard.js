@@ -3,11 +3,30 @@ import {parseCookies} from '@/helpers/index';
 import {API_URL} from '@/config/index';
 import styles from '@/styles/Dashboard.module.css';
 import DashboardEvent from '@/components/DashboardEvent';
+import {toast} from 'react-toastify';
+import {useRouter} from 'next/router';
 
-const Dashboard = ({events}) => {
-    const deleteEvent = () => {
+const Dashboard = ({events, token}) => {
+    const router = useRouter();
 
-    }
+    const deleteEvent = async (id) => {
+        if (confirm('Are you sure?')) {
+            const res = await fetch(`${API_URL}/events/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+            });
+            const data = await res.json();
+
+            if (!res.ok) {
+                toast.error(data.message);
+            } else {
+                router.reload();
+            }
+        }
+    };
+
     return (
         <Layout title="User Dashboard">
             <div className={styles.dashboard}>
@@ -26,7 +45,10 @@ const Dashboard = ({events}) => {
 export default Dashboard;
 
 export async function getServerSideProps({req}) {
-    const {token} = parseCookies(req);
+    let {token} = parseCookies(req);
+    if (!token) {
+        token = null;
+    }
 
     const res = await fetch(`${API_URL}/events/me`, {
         method: 'GET',
@@ -39,7 +61,8 @@ export async function getServerSideProps({req}) {
 
     return {
         props: {
-            events
+            events,
+            token
         }
     };
 }
